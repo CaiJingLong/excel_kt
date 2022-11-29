@@ -9,7 +9,7 @@ fun String.toFile(): File {
 /**
  * 如果文件不存在则创建文件和父目录
  */
-fun File.createIfExists(): File {
+fun File.createIfNotExists(): File {
     if (!exists()) {
         parentFile.mkdirs()
         createNewFile()
@@ -17,7 +17,7 @@ fun File.createIfExists(): File {
     return this
 }
 
-fun String.createFileIfExists(): String {
-    toFile().createIfExists()
+fun String.createIfNotExists(): String {
+    toFile().createIfNotExists()
     return this
 }

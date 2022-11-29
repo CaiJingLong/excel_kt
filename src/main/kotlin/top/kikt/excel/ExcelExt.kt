@@ -88,15 +88,24 @@ fun Cell?.stringValue(): String {
     }
 }
 
-fun Row.getWorkbook(): Workbook {
-    return sheet.workbook
-}
+val Row.workbook: Workbook
+    get() = sheet.workbook
+
+val Cell.workbook: Workbook
+    get() = row.workbook
 
 fun Workbook.saveTo(outputPath: String) {
-    outputPath.createFileIfExists()
-    val fos = FileOutputStream(outputPath)
-    this.write(fos)
-    fos.close()
+    outputPath.createIfNotExists()
+    FileOutputStream(outputPath).use {
+        write(it)
+    }
+}
+
+fun Workbook.saveTo(file: File) {
+    file.createIfNotExists()
+    FileOutputStream(file).use {
+        write(it)
+    }
 }
 
 fun Row.fillColor(
@@ -105,8 +114,7 @@ fun Row.fillColor(
     borderColor: HSSFColor.HSSFColorPredefined = HSSFColor.HSSFColorPredefined.BLACK,
     borderStyle: BorderStyle = BorderStyle.THIN,
 ) {
-    val wb = getWorkbook()
-    val style = wb.createCellStyle()
+    val style = workbook.createCellStyle()
     style.fillForegroundColor = color.index
     style.fillPattern = FillPatternType.SOLID_FOREGROUND
     if (fillBorder) {

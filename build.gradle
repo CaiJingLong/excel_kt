@@ -21,6 +21,12 @@ repositories {
 
 dependencies {
     testImplementation 'org.jetbrains.kotlin:kotlin-test'
+    // add simple logger
+    def slf4jVersion = '2.0.5'
+    implementation "org.slf4j:slf4j-api:$slf4jVersion"
+//    testImplementation "org.slf4j:slf4j-simple:$slf4jVersion"
+    testImplementation 'org.apache.logging.log4j:log4j-core:2.19.0'
+    testImplementation 'ch.qos.logback:logback-classic:1.4.5'
 
     // excel 相关的库 apache的poi库
     // https://mvnrepository.com/artifact/org.apache.poi/poi
