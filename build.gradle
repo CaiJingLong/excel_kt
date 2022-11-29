@@ -12,7 +12,8 @@ plugins {
 }
 
 group = 'top.kikt'
-version = '1.1.0'
+//version = '1.2.0'
+version = '1.2.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
@@ -43,7 +44,7 @@ compileTestKotlin {
 // publish
 mavenPublishing {
 
-    publishToMavenCentral(SonatypeHost.S01)
+    publishToMavenCentral(SonatypeHost.S01, true)
     signAllPublications()
 
     def repoName = "excel"

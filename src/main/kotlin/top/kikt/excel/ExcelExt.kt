@@ -4,6 +4,7 @@ package top.kikt.excel
 
 import org.apache.poi.hssf.util.HSSFColor
 import org.apache.poi.ss.usermodel.*
+import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
@@ -128,4 +129,12 @@ fun CellStyle.makeBorder(
     this.topBorderColor = borderColor.index
     this.rightBorderColor = borderColor.index
     this.bottomBorderColor = borderColor.index
+}
+
+fun String.toWorkbook(): Workbook {
+    return ExcelUtils.getWorkbook(this)
+}
+
+fun File.toWorkbook(): Workbook {
+    return ExcelUtils.getWorkbook(this)
 }
