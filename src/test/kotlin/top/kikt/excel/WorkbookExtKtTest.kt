@@ -19,10 +19,19 @@ internal class WorkbookExtKtTest {
         val targetSheet = srcSheet.copyTo(wb2)
 
         logger.debug("targetSheet: {}", targetSheet.sheetName)
-        val firstCell = targetSheet.getRow(0).getCell(0)
-        logger.debug("firstCell style: {}", firstCell.cellStyle.debugInfo())
 
         wb2.saveTo(outputFile)
+    }
+
+    @Test
+    fun sheet97To2007() {
+        val wb1 = File("sample/src1.xlsx").toWorkbook()
+        val wb2 = File("sample/src3.xls").toWorkbook()
+        val outputFile = File("sample/output-97-2007.xlsx").createIfNotExists()
+
+        wb2.getSheetAt(0).copyTo(wb1)
+
+        wb1.saveTo(outputFile)
     }
 
 }
