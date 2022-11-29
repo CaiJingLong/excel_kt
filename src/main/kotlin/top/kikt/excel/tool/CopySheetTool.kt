@@ -6,10 +6,10 @@ import top.kikt.excel.isMerged
 import top.kikt.excel.isMergedMainCell
 import top.kikt.excel.stringValue
 
-internal class CopyTool(val src: Sheet, val targetWorkbook: Workbook) {
+internal class CopySheetTool(private val src: Sheet, private val targetWorkbook: Workbook) {
 
     companion object {
-        private val logger = LoggerFactory.getLogger(CopyTool::class.java)
+        private val logger = LoggerFactory.getLogger(CopySheetTool::class.java)
     }
 
     fun copy(): Sheet {
@@ -89,7 +89,7 @@ internal class CopyTool(val src: Sheet, val targetWorkbook: Workbook) {
     /**
      *
      */
-    internal fun Cell.showStyle() {
+    private fun Cell.showStyle() {
         // font style
         val index = cellStyle.fontIndex
         val font = row.sheet.workbook.getFontAt(index)
@@ -99,7 +99,7 @@ internal class CopyTool(val src: Sheet, val targetWorkbook: Workbook) {
     /**
      * Copy cell to target cell
      */
-    fun Cell.copyTo(other: Cell) {
+    private fun Cell.copyTo(other: Cell) {
         if (isMerged() && !isMergedMainCell()) {
             return
         }
