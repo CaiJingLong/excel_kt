@@ -2,16 +2,16 @@
 
 Wrapper poi of apache to handle excel.
 
+![Maven Central](https://img.shields.io/maven-central/v/top.kikt/excel)
+
 ## Include
 
-Now, need wait for maven central to review.
-
-If checked, then include library for next code
+[show version list](https://search.maven.org/artifact/top.kikt/excel)
 
 ```groovy
 
 dependencies {
-    implmentation 'top.kikt:excel:1.1.0'
+    implmentation("top.kikt:excel:$version")
 }
 
 ```
