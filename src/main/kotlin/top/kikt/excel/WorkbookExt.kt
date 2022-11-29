@@ -82,33 +82,14 @@ fun Sheet.copyTo(targetWorkbook: Workbook): Sheet {
     return target
 }
 
-fun Cell.showStyle() {
+/**
+ *
+ */
+internal fun Cell.showStyle() {
     // font style
     val index = cellStyle.fontIndex
     val font = row.sheet.workbook.getFontAt(index)
     logger.trace("index: {}, font: {}", index, font)
-}
-
-fun Cell.isMerged(): Boolean {
-    val sheet = row.sheet
-    for (i in 0 until sheet.numMergedRegions) {
-        val region = sheet.getMergedRegion(i)
-        if (region.isInRange(row.rowNum, this.columnIndex)) {
-            return true
-        }
-    }
-    return false
-}
-
-fun Cell.isMergedMainCell(): Boolean {
-    val sheet = row.sheet
-    for (i in 0 until sheet.numMergedRegions) {
-        val region = sheet.getMergedRegion(i)
-        if (region.isInRange(row.rowNum, this.columnIndex)) {
-            return region.firstRow == row.rowNum && region.firstColumn == this.columnIndex
-        }
-    }
-    return false
 }
 
 /**
@@ -128,7 +109,7 @@ fun Cell.copyTo(other: Cell) {
             if (src.javaClass != target.javaClass) {
                 logger.debug("The style class is not same, src: {}, target: {}", src.javaClass, target.javaClass)
                 // use custom clone method
-
+                customCopyStyleTo(other)
             } else {
                 target.cloneStyleFrom(src)
             }
@@ -154,7 +135,10 @@ fun Cell.copyTo(other: Cell) {
     logger.debug("target cell style: {}", other.cellStyle.debugInfo())
 }
 
-fun Cell.customCopyTo(other: Cell) {
+/**
+ * Custom copy cell style to target cell.
+ */
+internal fun Cell.customCopyStyleTo(other: Cell) {
     val otherStyle = other.cellStyle
     // ignore font , because font is alone method
 

@@ -6,12 +6,21 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
 import java.io.IOException
 
+/**
+ * Create workbook from file of file path.
+ */
 @Suppress("unused")
 object ExcelUtils {
 
+    /**
+     * Create workbook from file path.
+     */
     @JvmStatic
     fun getWorkbook(path: String): Workbook = getWorkbook(File(path))
 
+    /**
+     * Create workbook from file.
+     */
     @JvmStatic
     fun getWorkbook(file: File): Workbook {
         if (!file.exists()) {

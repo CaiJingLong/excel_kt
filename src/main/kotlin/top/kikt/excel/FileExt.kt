@@ -2,12 +2,15 @@ package top.kikt.excel
 
 import java.io.File
 
+/**
+ * String to file.
+ */
 fun String.toFile(): File {
     return File(this)
 }
 
 /**
- * 如果文件不存在则创建文件和父目录
+ * If file is not exist, create parent dir and it.
  */
 fun File.createIfNotExists(): File {
     if (!exists()) {
@@ -17,6 +20,9 @@ fun File.createIfNotExists(): File {
     return this
 }
 
+/**
+ * If file is not exist, create parent dir and it.
+ */
 fun String.createIfNotExists(): String {
     toFile().createIfNotExists()
     return this

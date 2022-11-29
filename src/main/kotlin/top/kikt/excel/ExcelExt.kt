@@ -8,7 +8,9 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
-
+/**
+ * Example: "A" -> 0, "B" -> 1, "AA" -> 26, "AB" -> 27
+ */
 fun letterToRowIndex(letter: String): Int {
     letter.uppercase().apply {
         if (this.length == 1) {
@@ -26,19 +28,23 @@ fun letterToRowIndex(letter: String): Int {
     throw IOException("Invalid column letter")
 }
 
-/** 获取 Cell，可能为空 */
+/** Get Cell, maybe null */
 fun Row.getCellOrNull(letter: String): Cell? {
     val index = letterToRowIndex(letter)
     return getCell(index)
 }
 
-/** 获取 Cell，如果不存在，创建一个 */
+/**
+ * Get Cell, if not exist, create it.
+ */
 fun Row.getCellOrCreate(letter: String): Cell {
     val index = letterToRowIndex(letter)
     return getCell(index) ?: createCell(index)
 }
 
-/** 创建 Cell */
+/**
+ * Create new cell, and set cell style.
+ */
 fun Row.createCell(letter: String, style: CellStyle? = null): Cell {
     val index = letterToRowIndex(letter)
     return createCell(index).apply {
@@ -48,52 +54,21 @@ fun Row.createCell(letter: String, style: CellStyle? = null): Cell {
     }
 }
 
-
-fun Cell.intValue(): Int {
-    return try {
-        when (cellType) {
-            CellType.NUMERIC -> numericCellValue.toInt()
-            CellType.STRING -> stringValue().toInt()
-            else -> 0
-        }
-    } catch (e: Exception) {
-        0
-    }
-}
-
-
-fun Cell?.doubleValue(): Double {
-    if (this == null) return 0.0
-    return try {
-        when (cellType) {
-            CellType.NUMERIC -> numericCellValue
-            CellType.STRING -> stringValue().toDouble()
-            else -> 0.0
-        }
-    } catch (e: Exception) {
-        0.0
-    }
-}
-
-fun Cell?.stringValue(): String {
-    if (this == null) return ""
-    return try {
-        when (cellType) {
-            CellType.NUMERIC -> numericCellValue.toString()
-            CellType.STRING -> stringCellValue
-            else -> ""
-        }
-    } catch (e: Exception) {
-        ""
-    }
-}
-
+/**
+ * Get workbook from row.
+ */
 val Row.workbook: Workbook
     get() = sheet.workbook
 
+/**
+ * Get workbook from cell.
+ */
 val Cell.workbook: Workbook
     get() = row.workbook
 
+/**
+ * Save workbook to file path.
+ */
 fun Workbook.saveTo(outputPath: String) {
     outputPath.createIfNotExists()
     FileOutputStream(outputPath).use {
@@ -101,6 +76,9 @@ fun Workbook.saveTo(outputPath: String) {
     }
 }
 
+/**
+ * Save workbook to file.
+ */
 fun Workbook.saveTo(file: File) {
     file.createIfNotExists()
     FileOutputStream(file).use {
@@ -108,41 +86,16 @@ fun Workbook.saveTo(file: File) {
     }
 }
 
-fun Row.fillColor(
-    color: HSSFColor.HSSFColorPredefined = HSSFColor.HSSFColorPredefined.LIGHT_YELLOW,
-    fillBorder: Boolean = true,
-    borderColor: HSSFColor.HSSFColorPredefined = HSSFColor.HSSFColorPredefined.BLACK,
-    borderStyle: BorderStyle = BorderStyle.THIN,
-) {
-    val style = workbook.createCellStyle()
-    style.fillForegroundColor = color.index
-    style.fillPattern = FillPatternType.SOLID_FOREGROUND
-    if (fillBorder) {
-        style.makeBorder(borderColor = borderColor, borderStyle = borderStyle)
-    }
-    for (cell in this) {
-        cell.cellStyle = style
-    }
-}
-
-fun CellStyle.makeBorder(
-    borderColor: HSSFColor.HSSFColorPredefined = HSSFColor.HSSFColorPredefined.BLACK,
-    borderStyle: BorderStyle = BorderStyle.THIN
-) {
-    borderLeft = borderStyle
-    borderTop = borderStyle
-    borderRight = borderStyle
-    borderBottom = borderStyle
-    this.leftBorderColor = borderColor.index
-    this.topBorderColor = borderColor.index
-    this.rightBorderColor = borderColor.index
-    this.bottomBorderColor = borderColor.index
-}
-
+/**
+ * File path to workbook.
+ */
 fun String.toWorkbook(): Workbook {
     return ExcelUtils.getWorkbook(this)
 }
 
+/**
+ * File to workbook.
+ */
 fun File.toWorkbook(): Workbook {
     return ExcelUtils.getWorkbook(this)
 }
