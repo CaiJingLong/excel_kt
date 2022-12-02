@@ -2,8 +2,8 @@
 
 package top.kikt.excel
 
-import org.apache.poi.hssf.util.HSSFColor
 import org.apache.poi.ss.usermodel.*
+import org.apache.poi.ss.util.CellAddress
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -26,6 +26,77 @@ fun letterToRowIndex(letter: String): Int {
 
     }
     throw IOException("Invalid column letter")
+}
+
+/**
+ * Convert excel tag to cell address.
+ *
+ * Such as: "A1" => row 0, column 0
+ *          "B2" => row 1, column 1
+ *          "AA1" => row 0, column 26
+ */
+fun String.toAddress(): CellAddress {
+    val letter = this.replace(Regex("[0-9]"), "")
+    val number = this.replace(Regex("[A-Z]"), "")
+
+    val rowIndex = number.toInt() - 1
+    val columnIndex = letterToRowIndex(letter)
+
+    return CellAddress(rowIndex, columnIndex)
+}
+
+/**
+ * Get cell with row and column index.
+ * Return null if not exist.
+ */
+fun Sheet.getCellOrNull(rowIndex: Int, columnIndex: Int): Cell? {
+    val row = getRow(rowIndex) ?: return null
+    return row.getCell(columnIndex)
+}
+
+/**
+ * Get cell for CellAddress.
+ */
+fun Sheet.getCellOrNull(address: CellAddress): Cell? {
+    return getCellOrNull(address.row, address.column)
+}
+
+/**
+ * Get cell with "tag"
+ * Return null if not found.
+ *
+ * Such as: "A1" => row 0, column 0
+ *          "B2" => row 1, column 1
+ *          "AA1" => row 0, column 26
+ */
+fun Sheet.getCellOrNull(tag: String): Cell? {
+    val address = tag.toAddress()
+    return getCellOrNull(address)
+}
+
+/**
+ * Get cell with "tag"
+ * If not found, create it.
+ */
+fun Sheet.getCellOrCreate(tag: String): Cell {
+    val address = tag.toAddress()
+    return getCellOrCreate(address)
+}
+
+/**
+ * Get cell with address
+ */
+fun Sheet.getCellOrCreate(address: CellAddress): Cell {
+    return getCellOrCreate(address.row, address.column)
+}
+
+/**
+ * Get cell with row and column index.
+ * If not found, create it.
+ */
+fun Sheet.getCellOrCreate(rowIndex: Int, columnIndex: Int): Cell {
+    val row = getRow(rowIndex) ?: createRow(rowIndex)
+    return row.getCell(columnIndex) ?: row.createCell(columnIndex)
 }
 
 /** Get Cell, maybe null */
