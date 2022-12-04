@@ -26,3 +26,14 @@ fun Cell.isMergedMainCell(): Boolean {
     }
     return false
 }
+
+
+fun Cell.copyCellFont(other: Cell) {
+    val srcWorkbook = this.workbook
+    val targetWorkbook = other.workbook
+
+    val srcFont = srcWorkbook.getFontAt(this.cellStyle.fontIndex)
+    val targetFont = srcFont.copy(srcWorkbook, targetWorkbook)
+
+    other.cellStyle.setFont(targetFont)
+}
