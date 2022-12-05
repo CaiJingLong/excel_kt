@@ -173,8 +173,14 @@ fun File.toWorkbook(): Workbook {
     return ExcelUtils.getWorkbook(this)
 }
 
-fun File.createWorkbook(): Workbook {
-    if (exists()) {
+/**
+ * Create workbook from file path.
+ *
+ * If deleteOld is true, delete old file.
+ * otherwise, call the [File.toWorkbook] method to get workbook.
+ */
+fun File.createWorkbook(deleteOld: Boolean = false): Workbook {
+    if (!deleteOld && exists()) {
         return toWorkbook()
     }
     when {
