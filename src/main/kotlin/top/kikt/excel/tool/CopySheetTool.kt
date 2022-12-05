@@ -228,13 +228,13 @@ internal class CopySheetTool(private val src: Sheet, private val targetWorkbook:
         logger.info("src text: {}", src.string)
 
         for (formatIndex in 0 until src.numFormattingRuns()) {
-            val srcFont = src.getFontOfFormattingRun(formatIndex)
+            val srcFont = src.getFontOfFormattingRun(formatIndex) ?: continue
             val formatStart = src.getIndexOfFormattingRun(formatIndex)
             val formatLength = src.getLengthOfFormattingRun(formatIndex)
 
             logger.info("src font: {}", srcFont)
 
-            val targetFont = srcFont?.copyFont() ?: continue
+            val targetFont = srcFont.copy(this.src.workbook, this.targetWorkbook)
 
             logger.info("target font: {}", targetFont)
 
