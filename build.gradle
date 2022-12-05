@@ -13,7 +13,10 @@ plugins {
 
 group = 'top.kikt'
 version = '1.3.0'
-//version = '1.3.0-SNAPSHOT'
+
+if (ext.has('is_snapshot') && ext.get('is_snapshot') == 'true') {
+    version = "$version-SNAPSHOT"
+}
 
 repositories {
     mavenCentral()
