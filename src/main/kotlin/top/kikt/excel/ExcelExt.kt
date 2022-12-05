@@ -2,8 +2,10 @@
 
 package top.kikt.excel
 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellAddress
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -169,4 +171,27 @@ fun String.toWorkbook(): Workbook {
  */
 fun File.toWorkbook(): Workbook {
     return ExcelUtils.getWorkbook(this)
+}
+
+/**
+ * Create workbook from file path.
+ *
+ * If deleteOld is true, delete old file.
+ * otherwise, call the [File.toWorkbook] method to get workbook.
+ */
+fun File.createWorkbook(deleteOld: Boolean = false): Workbook {
+    if (!deleteOld && exists()) {
+        return toWorkbook()
+    }
+    when {
+        extension.contentEquals("xls", true) -> {
+            return HSSFWorkbook()
+        }
+
+        extension.contentEquals("xlsx", true) -> {
+            return XSSFWorkbook()
+        }
+    }
+
+    throw IllegalStateException("The file cannot create excel file.")
 }

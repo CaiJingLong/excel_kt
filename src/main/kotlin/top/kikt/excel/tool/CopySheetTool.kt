@@ -4,9 +4,7 @@ import org.apache.poi.hssf.usermodel.HSSFRichTextString
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.xssf.usermodel.XSSFRichTextString
 import org.slf4j.LoggerFactory
-import top.kikt.excel.isMerged
-import top.kikt.excel.isMergedMainCell
-import top.kikt.excel.stringValue
+import top.kikt.excel.*
 
 internal class CopySheetTool(private val src: Sheet, private val targetWorkbook: Workbook) {
 
@@ -16,6 +14,7 @@ internal class CopySheetTool(private val src: Sheet, private val targetWorkbook:
 
     /** The map key is src font index, value is target workbook font */
     private val fontMap = mutableMapOf<Int, Font>()
+    private val srcFontMap = mutableMapOf<Int, Font>()
 
     private val isSameType: Boolean by lazy {
         src.workbook.javaClass == targetWorkbook.javaClass
@@ -93,29 +92,31 @@ internal class CopySheetTool(private val src: Sheet, private val targetWorkbook:
         return target
     }
 
+    private fun Font.copyFont(): Font {
+        val font = this
+        return targetWorkbook.createFont().also {
+            it.fontName = font.fontName
+            it.bold = font.bold
+            it.italic = font.italic
+            it.strikeout = font.strikeout
+            it.typeOffset = font.typeOffset
+            it.underline = font.underline
+            it.color = font.color
+
+            it.charSet = font.charSet
+            it.fontHeight = font.fontHeight
+            it.fontHeightInPoints = font.fontHeightInPoints
+        }
+    }
+
     private fun refreshFontMap() {
         src.workbook.numberOfFonts.apply {
             for (i in 0 until this) {
                 val font = src.workbook.getFontAt(i)
 
-                targetWorkbook.createFont().apply {
-                    fontName = font.fontName
-                    bold = font.bold
-                    italic = font.italic
-                    strikeout = font.strikeout
-                    typeOffset = font.typeOffset
-                    underline = font.underline
-                    color = font.color
+                srcFontMap[i] = font
 
-                    charSet = font.charSet
-                    fontHeight = font.fontHeight
-                    fontHeightInPoints = font.fontHeightInPoints
-
-                    fontMap[i] = this
-
-                    logger.trace("src: {}", font)
-                    logger.trace("target: {}", this)
-                }
+                fontMap[i] = font.copyFont()
             }
         }
     }
@@ -139,11 +140,21 @@ internal class CopySheetTool(private val src: Sheet, private val targetWorkbook:
             return
         }
 
-        logger.trace("copy cell( {}, {} ) before:, src cell: {}", row.rowNum, columnIndex, this)
+        logger.trace("copy cell( {}, {} ) before: src cell: {}", row.rowNum, columnIndex, this)
 
         other.cellComment = this.cellComment
         other.hyperlink = this.hyperlink
 
+        copyCellValue(other)
+        copyCellStyle(other)
+        copyCellFont(other)
+
+        logger.trace("copy cell( {}, {} ) after : target cell: {}", row.rowNum, columnIndex, other)
+
+        logger.debug("target cell style: {}", other.cellStyle.debugInfo())
+    }
+
+    private fun Cell.copyCellValue(other: Cell) {
         try {
             logger.trace("copy cell({}, {}) value before, src cell: {}", row.rowNum, columnIndex, this)
             when (cellType) {
@@ -161,29 +172,25 @@ internal class CopySheetTool(private val src: Sheet, private val targetWorkbook:
             logger.warn("set cell error", e)
             other.setCellValue(stringValue())
         }
+    }
 
-        run {
-            logger.debug("Copy cell style before: {}", other.cellStyle.debugInfo())
-            // clone style
-            val src = this.cellStyle
-            val target = other.createStyle()
+    private fun Cell.copyCellStyle(other: Cell) {
+        logger.debug("Copy cell style before: {}", other.cellStyle.debugInfo())
+        // clone style
+        val src = this.cellStyle
+        val target = other.createStyle()
 
-            if (src != null) {
-                if (src.javaClass != target.javaClass) {
-                    logger.debug("The style class is not same, src: {}, target: {}", src.javaClass, target.javaClass)
-                    // use custom clone method
-                    customCopyStyleTo(other)
-                } else {
-                    target.cloneStyleFrom(src)
-                }
+        if (src != null) {
+            if (src.javaClass != target.javaClass) {
+                logger.debug("The style class is not same, src: {}, target: {}", src.javaClass, target.javaClass)
+                // use custom clone method
+                customCopyStyleTo(other)
+            } else {
+                target.cloneStyleFrom(src)
             }
-            logger.debug("Copy cell style after: {}", other.cellStyle.debugInfo())
         }
 
-
-        logger.trace("copy cell after: {}, {}, target cell: {}", row.rowNum, columnIndex, other)
-
-        logger.debug("target cell style: {}", other.cellStyle.debugInfo())
+        logger.debug("Copy cell style after: {}", other.cellStyle.debugInfo())
     }
 
     private fun Cell.copyStringValueTo(other: Cell) {
@@ -217,12 +224,19 @@ internal class CopySheetTool(private val src: Sheet, private val targetWorkbook:
     private fun convertToHSSFRichTextString(src: XSSFRichTextString): HSSFRichTextString {
         val hssfRichTextString = HSSFRichTextString(src.string)
 
+        logger.info("convert xss to hss")
+        logger.info("src text: {}", src.string)
+
         for (formatIndex in 0 until src.numFormattingRuns()) {
-            val fontIndex = src.getIndexOfFormattingRun(formatIndex)
+            val srcFont = src.getFontOfFormattingRun(formatIndex) ?: continue
             val formatStart = src.getIndexOfFormattingRun(formatIndex)
             val formatLength = src.getLengthOfFormattingRun(formatIndex)
 
-            val targetFont = fontMap[fontIndex] ?: continue
+            logger.info("src font: {}", srcFont)
+
+            val targetFont = srcFont.copy(this.src.workbook, this.targetWorkbook)
+
+            logger.info("target font: {}", targetFont)
 
             hssfRichTextString.applyFont(formatStart, formatStart + formatLength, targetFont)
         }
