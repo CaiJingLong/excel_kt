@@ -61,7 +61,7 @@ mavenPublishing {
     def repoName = "excel"
     def desc = "Excel utils for wrapper apache poi."
 
-    def licenseUrl = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+    def licenseUrl = "https://www.apache.org/licenses/LICENSE-2.0.txt"
 
     def author = "CaiJingLong"
     def repoUrl = "https://github.com/CaiJingLong/excel_kt/"
