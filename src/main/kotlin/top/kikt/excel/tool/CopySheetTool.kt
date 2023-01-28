@@ -1,8 +1,6 @@
 package top.kikt.excel.tool
 
-import org.apache.poi.hssf.usermodel.HSSFRichTextString
 import org.apache.poi.ss.usermodel.*
-import org.apache.poi.xssf.usermodel.XSSFRichTextString
 import org.slf4j.LoggerFactory
 import top.kikt.excel.*
 
@@ -15,10 +13,6 @@ internal class CopySheetTool(private val src: Sheet, private val targetWorkbook:
     /** The map key is src font index, value is target workbook font */
     private val fontMap = mutableMapOf<Int, Font>()
     private val srcFontMap = mutableMapOf<Int, Font>()
-
-    private val isSameType: Boolean by lazy {
-        src.workbook.javaClass == targetWorkbook.javaClass
-    }
 
     fun copy(index: Int? = null, targetName: String? = null, active: Boolean = false): Sheet {
         logger.trace("Start copy sheet ${src.sheetName}")
@@ -154,26 +148,6 @@ internal class CopySheetTool(private val src: Sheet, private val targetWorkbook:
         logger.debug("target cell style: {}", other.cellStyle.debugInfo())
     }
 
-    private fun Cell.copyCellValue(other: Cell) {
-        try {
-            logger.trace("copy cell({}, {}) value before, src cell: {}", row.rowNum, columnIndex, this)
-            when (cellType) {
-                CellType.BLANK -> other.setBlank()
-                CellType.BOOLEAN -> other.setCellValue(this.booleanCellValue)
-                CellType.ERROR -> other.setCellErrorValue(this.errorCellValue)
-                CellType.FORMULA -> other.cellFormula = this.cellFormula
-                CellType.NUMERIC -> other.setCellValue(this.numericCellValue)
-                CellType.STRING -> this.copyStringValueTo(other)
-                else -> {
-                }
-            }
-            logger.trace("copy cell({}, {}) value after, src cell: {}", row.rowNum, columnIndex, this)
-        } catch (e: Exception) {
-            logger.warn("set cell error", e)
-            other.setCellValue(stringValue())
-        }
-    }
-
     private fun Cell.copyCellStyle(other: Cell) {
         logger.debug("Copy cell style before: {}", other.cellStyle.debugInfo())
         // clone style
@@ -184,115 +158,13 @@ internal class CopySheetTool(private val src: Sheet, private val targetWorkbook:
             if (src.javaClass != target.javaClass) {
                 logger.debug("The style class is not same, src: {}, target: {}", src.javaClass, target.javaClass)
                 // use custom clone method
-                customCopyStyleTo(other)
+                copyStyle(other)
             } else {
                 target.cloneStyleFrom(src)
             }
         }
 
         logger.debug("Copy cell style after: {}", other.cellStyle.debugInfo())
-    }
-
-    private fun Cell.copyStringValueTo(other: Cell) {
-        if (cellType != CellType.STRING) {
-            return
-        }
-        if (isSameType) {
-            other.setCellValue(this.richStringCellValue)
-            return
-        }
-
-        // if workbook is not same type, use string value
-        val targetValue: RichTextString =
-            when (val richStringCellValue = this.richStringCellValue) {
-                is XSSFRichTextString -> {
-                    convertToHSSFRichTextString(richStringCellValue)
-                }
-
-                is HSSFRichTextString -> {
-                    convertToXSSFRichTextString(richStringCellValue)
-                }
-
-                else -> {
-                    null
-                }
-            } ?: return
-
-        other.setCellValue(targetValue)
-    }
-
-    private fun convertToHSSFRichTextString(src: XSSFRichTextString): HSSFRichTextString {
-        val hssfRichTextString = HSSFRichTextString(src.string)
-
-        logger.info("convert xss to hss")
-        logger.info("src text: {}", src.string)
-
-        for (formatIndex in 0 until src.numFormattingRuns()) {
-            val srcFont = src.getFontOfFormattingRun(formatIndex)
-            val formatStart = src.getIndexOfFormattingRun(formatIndex)
-            val formatLength = src.getLengthOfFormattingRun(formatIndex)
-
-            logger.info("src font: {}", srcFont)
-
-            val targetFont = srcFont?.copyFont() ?: continue
-
-            logger.info("target font: {}", targetFont)
-
-            hssfRichTextString.applyFont(formatStart, formatStart + formatLength, targetFont)
-        }
-
-        return hssfRichTextString
-    }
-
-    private fun convertToXSSFRichTextString(src: HSSFRichTextString): XSSFRichTextString {
-        val xssfRichTextString = XSSFRichTextString(src.string)
-
-        for (i in 0 until src.string.count()) {
-            val font = src.getFontAtIndex(i)
-            val targetFont = fontMap[font.toInt()] ?: continue
-            xssfRichTextString.applyFont(i, i + 1, targetFont)
-        }
-
-        return xssfRichTextString
-    }
-
-    /**
-     * Custom copy cell style to target cell.
-     */
-    private fun Cell.customCopyStyleTo(other: Cell) {
-        val otherStyle = other.cellStyle
-        // ignore font , because font is alone method
-
-        // copy border
-        with(this.cellStyle) {
-            otherStyle.borderBottom = this.borderBottom
-            otherStyle.borderLeft = this.borderLeft
-            otherStyle.borderRight = this.borderRight
-            otherStyle.borderTop = this.borderTop
-
-            // copy border color
-            otherStyle.bottomBorderColor = this.bottomBorderColor
-            otherStyle.leftBorderColor = this.leftBorderColor
-            otherStyle.rightBorderColor = this.rightBorderColor
-            otherStyle.topBorderColor = this.topBorderColor
-
-            // copy fill
-            otherStyle.fillBackgroundColor = this.fillBackgroundColor
-            otherStyle.fillForegroundColor = this.fillForegroundColor
-
-            // copy fill pattern
-            otherStyle.fillPattern = this.fillPattern
-
-            // copy alignment
-            otherStyle.alignment = this.alignment
-            otherStyle.verticalAlignment = this.verticalAlignment
-
-            // copy wrap text
-            otherStyle.wrapText = this.wrapText
-
-            // copy date format
-            otherStyle.dataFormat
-        }
     }
 
     private fun Cell.createStyle(): CellStyle {
