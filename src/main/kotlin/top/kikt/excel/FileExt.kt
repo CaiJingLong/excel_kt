@@ -27,3 +27,11 @@ fun String.createIfNotExists(): String {
     toFile().createIfNotExists()
     return this
 }
+
+/**
+ * Create parent dir.
+ */
+fun File.createParent(): File {
+    parentFile.mkdirs()
+    return this
+}
