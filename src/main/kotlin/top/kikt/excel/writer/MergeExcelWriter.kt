@@ -2,6 +2,7 @@ package top.kikt.excel.writer
 
 import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.usermodel.WorkbookFactory
+import org.apache.poi.ss.util.CellRangeAddress
 import java.io.OutputStream
 import java.lang.reflect.Field
 
@@ -13,6 +14,10 @@ class MergeExcelWriter(val data: List<Any>) {
         lateinit var wrapperField: Field
         lateinit var field: Field
         lateinit var mergeExcelProperty: MergeExcelProperty
+        var dataTypeIndex = -1
+
+        var columnIndex = -1
+        var titleIndex = -1
 
         fun getValue(data: Any): Any? {
             wrapperField.isAccessible = true
@@ -33,6 +38,8 @@ class MergeExcelWriter(val data: List<Any>) {
 
         // handle first data to get title and merge type
         val clazz = first.javaClass
+
+        var dataTypeIndex = 0
         clazz.declaredFields.forEach { wrapperField ->
             val annotation = wrapperField.getAnnotation(MergeExcelProperty::class.java)
             if (annotation != null) {
@@ -51,14 +58,23 @@ class MergeExcelWriter(val data: List<Any>) {
                     mergeProperty.wrapperField = wrapperField
                     mergeProperty.field = field
                     mergeProperty.mergeExcelProperty = annotation
+                    mergeProperty.dataTypeIndex = dataTypeIndex
+
                     list.add(mergeProperty)
                 }
+
+                dataTypeIndex++
             }
         }
 
         list.apply {
             sortBy { it.propertyIndex }
+            sortBy { it.dataTypeIndex }
             sortBy { it.wrapperIndex }
+        }
+
+        for ((index, mergeProperty) in list.withIndex()) {
+            mergeProperty.columnIndex = index
         }
 
         val workbook = WorkbookFactory.create(true)
@@ -77,12 +93,11 @@ class MergeExcelWriter(val data: List<Any>) {
             for (mergeProperty in propertyList) {
                 val value = mergeProperty.getValue(item)
                 val lastCellNum = row.lastCellNum.toInt()
-                val cell =
-                    if (lastCellNum == -1) {
-                        row.createCell(0)
-                    } else {
-                        row.createCell(lastCellNum)
-                    }
+                val cell = if (lastCellNum == -1) {
+                    row.createCell(0)
+                } else {
+                    row.createCell(lastCellNum)
+                }
 
                 val typeAnno = mergeProperty.field.getAnnotation(ExcelTypeAnno::class.java)
                 if (typeAnno != null) {
@@ -109,32 +124,18 @@ class MergeExcelWriter(val data: List<Any>) {
     }
 
     private fun writeTitle(list: MutableList<MergeProperty>, sheet: Sheet) {
+
         run {
-            val title = sheet.createRow(0)
-            val wrapperMap = list.groupBy { it.wrapperIndex }
-            val keys = wrapperMap.keys.sortedBy { it }
-            for ((index, entry) in keys.withIndex()) {
-                val currentListCount = wrapperMap[entry]!!.size
-                val start = if (index == 0) {
-                    0
-                } else {
-                    var count = 0
-                    for (i in 0 until index) {
-                        count += wrapperMap[keys[i]]!!.size
-                    }
-                    count
-                }
-                val end = start + currentListCount
+            val row = sheet.createRow(0)
+            val groupData = list.groupBy { it.dataTypeIndex }
 
-                val cell = title.createCell(start)
-                val mergeProperty = wrapperMap[entry]!![0]
-                val value = mergeProperty.mergeExcelProperty.name.ifEmpty { mergeProperty.wrapperField.name }
-
-                cell.setCellValue(value)
-
-                // merge cell
-                if (currentListCount > 1) {
-                    sheet.addMergedRegion(org.apache.poi.ss.util.CellRangeAddress(0, 0, start, end - 1))
+            groupData.values.forEach { mergePropertyList ->
+                val min = mergePropertyList.minOf { it.columnIndex }
+                val max = mergePropertyList.maxOf { it.columnIndex }
+                val cell = row.createCell(min)
+                cell.setCellValue(mergePropertyList[0].mergeExcelProperty.value)
+                if (min != max) {
+                    sheet.addMergedRegion(CellRangeAddress(0, 0, min, max))
                 }
             }
         }
@@ -146,12 +147,7 @@ class MergeExcelWriter(val data: List<Any>) {
             if (name.isEmpty()) {
                 name = mergeProperty.field.name
             }
-            val lastCellNum = subTitle.lastCellNum.toInt()
-            if (lastCellNum == -1) {
-                subTitle.createCell(0).setCellValue(name)
-                continue
-            }
-            subTitle.createCell(lastCellNum).setCellValue(name)
+            subTitle.createCell(mergeProperty.columnIndex).setCellValue(name)
         }
     }
 

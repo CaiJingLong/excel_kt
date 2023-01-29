@@ -2,4 +2,7 @@ package top.kikt.excel.writer
 
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class MergeExcelProperty(val index: Int, val name: String = "")
+annotation class MergeExcelProperty(
+    val value: String = "",
+    val index: Int = Int.MAX_VALUE,
+)

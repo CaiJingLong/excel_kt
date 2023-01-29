@@ -11,7 +11,7 @@ internal class MergeExcelWriterTest {
     class Data1(
         @ExcelProperty("名字", 0) val name: String,
 
-        @ExcelProperty("描述", 1) val desc: String,
+        @ExcelProperty("描述", 2) val desc: String,
     )
 
     class Data2(@ExcelProperty("密码", 0) val password: String)
@@ -19,11 +19,11 @@ internal class MergeExcelWriterTest {
     class Data3(@ExcelProperty("邮箱", 0) val email: String)
 
     class DataWrapper(
-        @MergeExcelProperty(0, "数据1") val data1: Data1,
+        @MergeExcelProperty("数据1") val data1: Data1,
 
-        @MergeExcelProperty(1, "数据2") val data2: Data2,
+        @MergeExcelProperty("数据2", index = 0) val data2: Data2,
 
-        @MergeExcelProperty(2, "数据3") val data3: Data3,
+        @MergeExcelProperty("数据3") val data3: Data3,
     )
 
     @Test

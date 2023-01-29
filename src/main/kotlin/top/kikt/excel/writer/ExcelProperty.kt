@@ -4,5 +4,5 @@ package top.kikt.excel.writer
 @Retention(AnnotationRetention.RUNTIME)
 annotation class ExcelProperty(
     val value: String,
-    val index: Int
+    val index: Int = Int.MAX_VALUE,
 )
