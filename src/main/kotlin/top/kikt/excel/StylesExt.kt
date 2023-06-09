@@ -1,10 +1,8 @@
 package top.kikt.excel
 
 import org.apache.poi.hssf.util.HSSFColor
-import org.apache.poi.ss.usermodel.BorderStyle
-import org.apache.poi.ss.usermodel.CellStyle
-import org.apache.poi.ss.usermodel.FillPatternType
-import org.apache.poi.ss.usermodel.Row
+import org.apache.poi.ss.usermodel.*
+import org.apache.poi.ss.util.CellAddress
 
 
 /**
@@ -42,4 +40,24 @@ fun CellStyle.makeBorder(
     this.topBorderColor = borderColor.index
     this.rightBorderColor = borderColor.index
     this.bottomBorderColor = borderColor.index
+}
+
+/**
+ * Fill color for sheet range.
+ */
+fun Sheet.fillBorder(
+    startAddress: CellAddress,
+    endAddress: CellAddress,
+    borderColor: HSSFColor.HSSFColorPredefined = HSSFColor.HSSFColorPredefined.BLACK,
+    borderStyle: BorderStyle = BorderStyle.THIN
+) {
+    val style = workbook.createCellStyle()
+    style.makeBorder(borderColor = borderColor, borderStyle = borderStyle)
+    for (row in startAddress.row..endAddress.row) {
+        val rowObj = getRow(row) ?: createRow(row)
+        for (col in startAddress.column..endAddress.column) {
+            val cell = rowObj.getCell(col) ?: rowObj.createCell(col)
+            cell.cellStyle = style
+        }
+    }
 }

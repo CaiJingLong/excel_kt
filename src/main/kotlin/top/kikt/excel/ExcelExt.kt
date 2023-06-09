@@ -10,10 +10,15 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
+@Deprecated("Use letterToColumnIndex instead", ReplaceWith("letterToColumnIndex(letter)"))
+fun letterToRowIndex(letter: String): Int {
+    return letterToColumnIndex(letter)
+}
+
 /**
  * Example: "A" -> 0, "B" -> 1, "AA" -> 26, "AB" -> 27
  */
-fun letterToRowIndex(letter: String): Int {
+fun letterToColumnIndex(letter: String): Int {
     letter.uppercase().apply {
         if (this.length == 1) {
             return letter[0] - 'A'
@@ -42,7 +47,7 @@ fun String.toAddress(): CellAddress {
     val number = this.replace(Regex("[A-Z]"), "")
 
     val rowIndex = number.toInt() - 1
-    val columnIndex = letterToRowIndex(letter)
+    val columnIndex = letterToColumnIndex(letter)
 
     return CellAddress(rowIndex, columnIndex)
 }
@@ -103,7 +108,7 @@ fun Sheet.getCellOrCreate(rowIndex: Int, columnIndex: Int): Cell {
 
 /** Get Cell, maybe null */
 fun Row.getCellOrNull(letter: String): Cell? {
-    val index = letterToRowIndex(letter)
+    val index = letterToColumnIndex(letter)
     return getCell(index)
 }
 
@@ -111,7 +116,7 @@ fun Row.getCellOrNull(letter: String): Cell? {
  * Get Cell, if not exist, create it.
  */
 fun Row.getCellOrCreate(letter: String): Cell {
-    val index = letterToRowIndex(letter)
+    val index = letterToColumnIndex(letter)
     return getCell(index) ?: createCell(index)
 }
 
@@ -119,7 +124,7 @@ fun Row.getCellOrCreate(letter: String): Cell {
  * Create new cell, and set cell style.
  */
 fun Row.createCell(letter: String, style: CellStyle? = null): Cell {
-    val index = letterToRowIndex(letter)
+    val index = letterToColumnIndex(letter)
     return createCell(index).apply {
         if (style != null) {
             this.cellStyle = style
