@@ -49,8 +49,11 @@ internal class CopySheetTool(private val src: Sheet, private val targetWorkbook:
 
         for (row in src) {
             val targetRow = target.createRow(row.rowNum)
+            if (targetRow.rowStyle == null) {
+                targetRow.rowStyle = targetWorkbook.createCellStyle()
+            }
             // copy rowStyle
-            if (row.rowStyle != null && targetRow.rowStyle == null) {
+            if (row.rowStyle != null) {
                 targetRow.rowStyle.cloneStyleFrom(row.rowStyle)
             }
 
