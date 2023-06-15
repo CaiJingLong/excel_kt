@@ -1,0 +1,18 @@
+# Change log for top.kikt:excel
+
+## 1.5.2
+
+- `Sheet.copyTo` method add params
+
+## 1.5.1
+
+- Fix `Sheet.copyTo` method
+
+## 1.5.0
+
+- Add some method to find cell
+
+
+## 1.4.0
+
+- First maven central release

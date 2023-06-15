@@ -12,8 +12,19 @@ fun Sheet.copyTo(
     index: Int? = null,
     name: String? = null,
     active: Boolean = false,
+    copyStyle: Boolean = false,
+    copyFont: Boolean = false,
+    copySize: Boolean = true,
+    mergeRegion: Boolean = true,
 ): Sheet {
-    return CopySheetTool(this, targetWorkbook).copy(index, name, active)
+    return CopySheetTool(
+        this,
+        targetWorkbook,
+        copyStyle,
+        copyFont,
+        copySize,
+        mergeRegion,
+    ).copy(index, name, active)
 }
 
 /**

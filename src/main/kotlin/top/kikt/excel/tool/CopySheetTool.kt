@@ -4,7 +4,15 @@ import org.apache.poi.ss.usermodel.*
 import org.slf4j.LoggerFactory
 import top.kikt.excel.*
 
-internal class CopySheetTool(private val src: Sheet, private val targetWorkbook: Workbook) {
+@Suppress("MemberVisibilityCanBePrivate")
+internal class CopySheetTool(
+    private val src: Sheet,
+    private val targetWorkbook: Workbook,
+    var copyStyle: Boolean,
+    var copyFont: Boolean,
+    var copySize: Boolean,
+    var mergeRegion: Boolean,
+) {
 
     companion object {
         private val logger = LoggerFactory.getLogger(CopySheetTool::class.java)
@@ -34,27 +42,30 @@ internal class CopySheetTool(private val src: Sheet, private val targetWorkbook:
             }
         }
 
-        fontMap.clear()
-
-        refreshFontMap()
-
-        src.getRow(0).getCell(0).showStyle()
-
-        // copy merged region
-        for (i in 0 until src.numMergedRegions) {
-            val region = src.getMergedRegion(i)
-            target.addMergedRegion(region)
+        if (copyFont) {
+            fontMap.clear()
+            refreshFontMap()
         }
 
+        if (mergeRegion) {
+            // copy merged region
+            for (i in 0 until src.numMergedRegions) {
+                val region = src.getMergedRegion(i)
+                target.addMergedRegion(region)
+            }
+        }
 
         for (row in src) {
             val targetRow = target.createRow(row.rowNum)
-            if (targetRow.rowStyle == null) {
-                targetRow.rowStyle = targetWorkbook.createCellStyle()
-            }
-            // copy rowStyle
-            if (row.rowStyle != null) {
-                targetRow.rowStyle.cloneStyleFrom(row.rowStyle)
+
+            if (copyStyle) {
+                if (targetRow.rowStyle == null) {
+                    targetRow.rowStyle = targetWorkbook.createCellStyle()
+                }
+                // copy rowStyle
+                if (row.rowStyle != null) {
+                    targetRow.rowStyle.cloneStyleFrom(row.rowStyle)
+                }
             }
 
             for (cell in row) {
@@ -74,11 +85,15 @@ internal class CopySheetTool(private val src: Sheet, private val targetWorkbook:
 
                 // copy cell width
 //                val columnWidth = src.getColumnWidthInPixels(cell.columnIndex)
-                target.setColumnWidth(cell.columnIndex, src.getColumnWidth(cell.columnIndex))
+                if (copySize) {
+                    target.setColumnWidth(cell.columnIndex, src.getColumnWidth(cell.columnIndex))
+                }
             }
 
             // copy height
-            targetRow.heightInPoints = row.heightInPoints
+            if (copySize) {
+                targetRow.heightInPoints = row.heightInPoints
+            }
         }
 
         // evaluate all formula
@@ -143,8 +158,12 @@ internal class CopySheetTool(private val src: Sheet, private val targetWorkbook:
         other.hyperlink = this.hyperlink
 
         copyCellValue(other)
-        copyCellStyle(other)
-        copyCellFont(other)
+        if (copyStyle) {
+            copyCellStyle(other)
+        }
+        if (copyFont) {
+            copyCellFont(other)
+        }
 
         logger.trace("copy cell( {}, {} ) after : target cell: {}", row.rowNum, columnIndex, other)
 
