@@ -8,7 +8,7 @@ import org.apache.poi.ss.util.CellAddress
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
+import kotlin.math.pow
 
 @Deprecated("Use letterToColumnIndex instead", ReplaceWith("letterToColumnIndex(letter)"))
 fun letterToRowIndex(letter: String): Int {
@@ -19,20 +19,14 @@ fun letterToRowIndex(letter: String): Int {
  * Example: "A" -> 0, "B" -> 1, "AA" -> 26, "AB" -> 27
  */
 fun letterToColumnIndex(letter: String): Int {
-    letter.uppercase().apply {
-        if (this.length == 1) {
-            return letter[0] - 'A'
-        }
-
-        if (this.length == 2) {
-            val firstIndex = this[0] - 'A'
-            val secondIndex = this[1] - 'A'
-
-            return firstIndex * 26 + secondIndex
-        }
-
+    val upperCase = letter.uppercase().reversed()
+    var sum = 0
+    for ((index, char) in upperCase.withIndex()) {
+        val charIndex = (char - 'A') + 1
+        val pow = 26.0.pow(index).toInt()
+        sum += charIndex * pow
     }
-    throw IOException("Invalid column letter")
+    return sum - 1
 }
 
 /**

@@ -1,5 +1,9 @@
 # Change log for top.kikt:excel
 
+## 1.5.3
+
+- fix `letterToColumnIndex` bug.
+
 ## 1.5.2
 
 - `Sheet.copyTo` method add params
