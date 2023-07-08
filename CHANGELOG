@@ -3,6 +3,7 @@
 ## 1.5.3
 
 - fix `letterToColumnIndex` bug.
+- fix `doubleValue` bug.
 
 ## 1.5.2
 

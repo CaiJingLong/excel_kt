@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package top.kikt.excel
 
 import org.apache.poi.ss.usermodel.Cell
@@ -12,6 +14,7 @@ fun Cell?.intValue(): Int {
         when (this?.cellType) {
             CellType.NUMERIC -> numericCellValue.toInt()
             CellType.STRING -> stringValue().toInt()
+            CellType.FORMULA -> numericCellValue.toInt()
             else -> 0
         }
     } catch (e: Exception) {
@@ -28,6 +31,7 @@ fun Cell?.doubleValue(): Double {
         when (cellType) {
             CellType.NUMERIC -> numericCellValue
             CellType.STRING -> stringValue().toDouble()
+            CellType.FORMULA -> numericCellValue
             else -> 0.0
         }
     } catch (e: Exception) {
