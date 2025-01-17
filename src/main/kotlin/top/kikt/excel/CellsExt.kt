@@ -36,6 +36,25 @@ fun Cell.isMergedMainCell(): Boolean {
     return false
 }
 
+/**
+ * Get the main cell of the merged region.
+ *
+ * If the cell is not merged cell, return itself.
+ */
+fun Cell.getMainCell(): Cell {
+    if (!isMerged()) {
+        return this
+    }
+
+    val sheet = row.sheet
+    val region = sheet.mergedRegions.find { it.isInRange(row.rowNum, 1) }
+    if (region != null) {
+        return sheet.getRow(region.firstRow).getCell(region.firstColumn)
+    }
+
+    // if not found, return itself，this is impossible
+    return this
+}
 
 /**
  * Copy cell font to target cell
